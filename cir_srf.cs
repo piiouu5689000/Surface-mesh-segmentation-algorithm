@@ -9,7 +9,7 @@ private IntersectionResult ComputeIntersections(Brep bsrf, Point3d pt0, Vector3d
     // 設置初始點
     Point3d cp = pt0;
 
-    // 法向量
+    // 計算法向量
     Vector3d zAxis = Vector3d.ZAxis;
     Vector3d dir2 = Vector3d.CrossProduct(dir, zAxis);
 
@@ -21,6 +21,7 @@ private IntersectionResult ComputeIntersections(Brep bsrf, Point3d pt0, Vector3d
     }
 
     dir2.Unitize(); // 確保 dir2 為單位向量
+    RhinoApp.WriteLine("Initialized direction vector and cross-product direction.");
 
     // 判斷是否為第一次迴圈
     bool first = true;
@@ -28,6 +29,8 @@ private IntersectionResult ComputeIntersections(Brep bsrf, Point3d pt0, Vector3d
     // 迴圈進行多次交點計算
     for (int i = 0; i < it; i++)
     {
+      RhinoApp.WriteLine(string.Format("Iteration {0}: Starting computation.", i + 1));
+
       // 創建平面和圓
       Plane plane = new Plane(cp, dir);
       Circle circle = new Circle(plane, radi);
@@ -40,68 +43,85 @@ private IntersectionResult ComputeIntersections(Brep bsrf, Point3d pt0, Vector3d
       Curve[] cirs;
       Point3d[] intP;
       bool isIntersecting = Intersection.CurveBrep(circleCurve, bsrf, tolerance, out cirs, out intP);
+
       // 如果沒有交點，停止迴圈
-      if (!isIntersecting )
+      if (!isIntersecting || intP == null || intP.Length == 0)
       {
+        RhinoApp.WriteLine(string.Format("Iteration {0}: No intersection points found.", i + 1));
         break;
       }
 
+      RhinoApp.WriteLine(string.Format("Iteration {0}: Found {1} intersection points.", i + 1, intP.Length));
+
       // 選擇正確方向的交點
       Point3d tp;
-      // 第一圈的狀況
       if (first)
       {
-          first = false;
-          if (intP.Length > 1)
+        first = false;
+        RhinoApp.WriteLine("Processing first iteration.");
+        if (intP.Length > 1)
+        {
+          foreach(var p0 in intP){
+            result.intpList.Add(p0);
+          }
+          // 過濾出沿 dir2 方向的交點，並作為當前 tp
+          var validPoints = intP.Where(p => Vector3d.Multiply(p - cp, dir2) < 0).ToList();
+          tp = validPoints.FirstOrDefault();
+          if (tp == Point3d.Unset)
           {
-            // 過濾出沿 dir2 方向的交點，並作為當前tp
-            var validPoints = intP.Where(p => Vector3d.Multiply(p - cp, dir2) < 0).ToList();
-            tp = validPoints.FirstOrDefault();
+            RhinoApp.WriteLine("No valid points found in the correct direction.");
+            break;
+          }
+        }
+        else
+        {
+          // 如果只有一個交點，檢查方向是否正確
+          if (Vector3d.Multiply(intP[0] - cp, dir2) > 0)
+          {
+            tp = intP[0];
           }
           else
           {
-              // 如果只有一個交點，檢查方向是否正確
-              if (Vector3d.Multiply(intP[0] - cp, dir2) > 0)
-              {
-                tp = intP[0];
-              }
-              else
-              {
-                break;
-              }
+            RhinoApp.WriteLine(string.Format("Iteration {0}: Single intersection point is in the wrong direction.", i + 1));
+            break;
           }
+        }
       }
       else
       {
-         // 其他圈的狀況
-          Point3d slp;
-          if (result.intpList.Count >= 2)
+        // 非第一次迭代
+        RhinoApp.WriteLine("Processing subsequent iterations.");
+        Point3d slp;
+        if (result.intpList.Count >= 2)
+        {
+          slp = result.intpList.ElementAt(result.intpList.Count - 2);
+        }
+        else
+        {
+          RhinoApp.WriteLine(string.Format("Iteration {0}: Not enough points in result list to proceed.", i + 1));
+          break;
+        }
+
+        if (intP.Length > 1)
+        {
+          Point3d farthestPoint = intP.OrderByDescending(p => p.DistanceTo(slp)).First();
+          tp = farthestPoint;
+        }
+        else
+        {
+          // 如果只有一個交點，檢查方向是否正確
+          if (Vector3d.Multiply(intP[0] - cp, dir2) > 0)
           {
-             slp = result.intpList.ElementAt(result.intpList.Count.Count - 2);
+            tp = intP[0];
           }
           else
           {
-             break;
+            RhinoApp.WriteLine(string.Format("Iteration {0}: Single intersection point is in the wrong direction.", i + 1));
+            break;
           }
-          if (intP.Length > 1)
-          {
-            Point3d farthestPoint = intP.OrderByDescending(p => p.DistanceTo(slp)).First();
-            tp = farthestPoint;
-          }
-           else
-          {
-              // 如果只有一個交點，檢查方向是否正確
-              if (Vector3d.Multiply(intP[0] - cp, dir2) > 0)
-              {
-                tp = intP[0];
-              }
-              else
-              {
-                break;
-              }
-          }
+        }
       }
-         
+
       // 更新當前點
       cp = tp;
 
@@ -109,8 +129,26 @@ private IntersectionResult ComputeIntersections(Brep bsrf, Point3d pt0, Vector3d
       result.intpList.Add(tp);
       result.Circles.Add(circleCurve);
       result.dd = dir2;
-      //result.ttp = testP;
+
+      RhinoApp.WriteLine(string.Format("Iteration {0}: Successfully added point {1} and circle.", i + 1, tp));
     }
 
+    RhinoApp.WriteLine("Computation completed.");
     return result;
+  }
+
+  // IntersectionResult 類
+  public class IntersectionResult
+  {
+    public List<Point3d> intpList { get; set; }
+    public List<Curve> Circles { get; set; }
+    public Vector3d dd { get; set; }
+
+    // 構造函式
+    public IntersectionResult()
+    {
+      intpList = new List<Point3d>();
+      Circles = new List<Curve>();
+      dd = new Vector3d();
+    }
   }

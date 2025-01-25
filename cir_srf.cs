@@ -22,8 +22,8 @@ private IntersectionResult ComputeIntersections(Brep bsrf, Point3d pt0, Vector3d
 
     dir2.Unitize(); // 確保 dir2 為單位向量
 
-    // 用於比較的測試點
-    //Point3d testP = pt0 - dir2 * 5;
+    // 判斷是否為第一次迴圈
+    bool first = true;
 
     // 迴圈進行多次交點計算
     for (int i = 0; i < it; i++)
@@ -40,7 +40,6 @@ private IntersectionResult ComputeIntersections(Brep bsrf, Point3d pt0, Vector3d
       Curve[] cirs;
       Point3d[] intP;
       bool isIntersecting = Intersection.CurveBrep(circleCurve, bsrf, tolerance, out cirs, out intP);
-
       // 如果沒有交點，停止迴圈
       if (!isIntersecting )
       {
@@ -50,37 +49,59 @@ private IntersectionResult ComputeIntersections(Brep bsrf, Point3d pt0, Vector3d
       // 選擇正確方向的交點
       Point3d tp;
       // 第一圈的狀況
-      if (intP.Length > 1)
+      if (first)
       {
-        // 過濾出沿 dir2 方向的交點，並作為當前tp
-        var validPoints = intP.Where(p => Vector3d.Multiply(p - cp, dir2) < 0).ToList();
-        tp = validPoints.FirstOrDefault();
-
+          first = false;
+          if (intP.Length > 1)
+          {
+            // 過濾出沿 dir2 方向的交點，並作為當前tp
+            var validPoints = intP.Where(p => Vector3d.Multiply(p - cp, dir2) < 0).ToList();
+            tp = validPoints.FirstOrDefault();
+          }
+          else
+          {
+              // 如果只有一個交點，檢查方向是否正確
+              if (Vector3d.Multiply(intP[0] - cp, dir2) > 0)
+              {
+                tp = intP[0];
+              }
+              else
+              {
+                break;
+              }
+          }
       }
       else
       {
-        // 如果只有一個交點，檢查方向是否正確
-        if (Vector3d.Multiply(intP[0] - cp, dir2) > 0)
-        {
-          tp = intP[0];
-        }
-        else
-        {
-          break;
-        }
+         // 其他圈的狀況
+          Point3d slp;
+          if (result.intpList.Count >= 2)
+          {
+             slp = result.intpList.ElementAt(list.Count - 2);
+          }
+          else
+          {
+             break;
+          }
+          if (intP.Length > 1)
+          {
+            Point3d farthestPoint = intP.OrderByDescending(p => p.DistanceTo(slp)).First();
+            tp = farthestPoint;
+          }
+           else
+          {
+              // 如果只有一個交點，檢查方向是否正確
+              if (Vector3d.Multiply(intP[0] - cp, dir2) > 0)
+              {
+                tp = intP[0];
+              }
+              else
+              {
+                break;
+              }
+          }
       }
-
-      // 其他圈的狀況
-      Point3d slp;
-      if (result.intpList.Count >= 2)
-      {
-         slp = result.intpList.ElementAt(list.Count - 2);
-      }
-      else
-      {
-         break;
-      }
-
+         
       // 更新當前點
       cp = tp;
 

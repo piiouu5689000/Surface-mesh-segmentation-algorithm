@@ -77,7 +77,7 @@ private IntersectionResult ComputeIntersections(Brep bsrf, Point3d pt0, Vector3d
           Point3d slp;
           if (result.intpList.Count >= 2)
           {
-             slp = result.intpList.ElementAt(list.Count - 2);
+             slp = result.intpList.ElementAt(result.intpList.Count.Count - 2);
           }
           else
           {

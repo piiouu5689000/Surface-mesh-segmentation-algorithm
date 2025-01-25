@@ -49,19 +49,12 @@ private IntersectionResult ComputeIntersections(Brep bsrf, Point3d pt0, Vector3d
 
       // 選擇正確方向的交點
       Point3d tp;
+      // 第一圈的狀況
       if (intP.Length > 1)
       {
-        // 過濾出沿 dir2 方向的交點
+        // 過濾出沿 dir2 方向的交點，並作為當前tp
         var validPoints = intP.Where(p => Vector3d.Multiply(p - cp, dir2) < 0).ToList();
-        //tp = validPoints.FirstOrDefault();
-        if (validPoints.Count > 0)
-        {
-          tp = validPoints[0];
-        }
-        else
-        {
-          tp = Point3d.Unset; // 沒有交點，返回未定義點
-        }
+        tp = validPoints.FirstOrDefault();
 
       }
       else
@@ -73,9 +66,19 @@ private IntersectionResult ComputeIntersections(Brep bsrf, Point3d pt0, Vector3d
         }
         else
         {
-          RhinoApp.WriteLine(string.Format("Iteration {0}: Single intersection point is in the wrong direction.", i + 1));
           break;
         }
+      }
+
+      // 其他圈的狀況
+      Point3d slp;
+      if (result.intpList.Count >= 2)
+      {
+         slp = result.intpList.ElementAt(list.Count - 2);
+      }
+      else
+      {
+         break;
       }
 
       // 更新當前點

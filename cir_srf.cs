@@ -53,6 +53,7 @@ private IntersectionResult ComputeIntersections(Brep bsrf, Point3d pt0, Vector3d
 
       RhinoApp.WriteLine(string.Format("Iteration {0}: Found {1} intersection points.", i + 1, intP.Length));
 
+      // 第一次迭代
       // 選擇正確方向的交點
       Point3d tp;
       if (first)
@@ -61,6 +62,7 @@ private IntersectionResult ComputeIntersections(Brep bsrf, Point3d pt0, Vector3d
         RhinoApp.WriteLine("Processing first iteration.");
         if (intP.Length > 1)
         {
+          // 將以原點生成圓的兩個交點放入列表
           foreach(var p0 in intP){
             result.intpList.Add(p0);
           }
@@ -94,6 +96,7 @@ private IntersectionResult ComputeIntersections(Brep bsrf, Point3d pt0, Vector3d
         Point3d slp;
         if (result.intpList.Count >= 2)
         {
+          // 取出料表中倒數第二個點，為slp
           slp = result.intpList.ElementAt(result.intpList.Count - 2);
         }
         else

@@ -7,7 +7,6 @@ private void RunScript(Brep bsrf, Point3d pt0, Vector3d dir, double radi, int it
     List<Vector3d> allDirs = new List<Vector3d>(); // 每組的方向向量
 
 
-
     List<Point3d> intpL = new List<Point3d>();
     List<Curve> cir = new List<Curve>();
 
@@ -24,15 +23,10 @@ private void RunScript(Brep bsrf, Point3d pt0, Vector3d dir, double radi, int it
     dd = result.dd;
     firstP = result.fp;
 
-
-
   }
 
-  // <Custom additional code> 
+  //////////////////////////// <Custom additional code> ///////////////////////////////////
 
-
-
-  // IntersectionResult 類
 
   private IntersectionResult ComputeIntersections(Brep bsrf, Point3d pt0, Vector3d dir, double radi, int it)
   {
@@ -182,6 +176,7 @@ private void RunScript(Brep bsrf, Point3d pt0, Vector3d dir, double radi, int it
   }
 
 
+  //////////////////////////////// IntersectionResult 類 ////////////////////////////////////
   public class IntersectionResult
   {
     public List<Point3d> intpList { get; set; }
@@ -198,7 +193,6 @@ private void RunScript(Brep bsrf, Point3d pt0, Vector3d dir, double radi, int it
       fp = new Point3d();
     }
   }
-
 
   // </Custom additional code> 
 }

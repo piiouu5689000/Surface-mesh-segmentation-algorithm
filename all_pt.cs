@@ -5,22 +5,65 @@ private void RunScript(Brep bsrf, Point3d pt0, List<Vector3d> dir, double radi, 
     DataTree<Point3d> intpTree = new DataTree<Point3d>();
     DataTree<Curve> circlesTree = new DataTree<Curve>();
     List<Vector3d> allDirs = new List<Vector3d>(); // 每組的方向向量
+    
+    // 用於記錄每個路徑的點數量
+    Dictionary<string, int> pointCounts = new Dictionary<string, int>(); 
+    
+    // 進行分組的雙重迴圈
+    for (int group = 0; group < 2; group++) // 外層代表分組 [dir[0], dir[1]] 和 [dir[2], dir[3]]
+    {
+        for (int repeat = 0; repeat < 2; repeat++) // 每組重複兩次
+        {
+            for (int i = 0; i < 2; i++) // 遍歷組內的方向
+            {
+                int dirIndex = group * 2 + i; // 計算方向索引，group=0 對應 dir[0], dir[1]，group=1 對應 dir[2], dir[3]
+                
+                // 調用 ComputeIntersections，存儲每次的結果
+                IntersectionResult singleResult = ComputeIntersections(bsrf, pt0, dir[dirIndex], radi, it);
+    
+                // 保存交點到樹狀結構
+                if (singleResult.intpList != null)
+                {
+                    // 設置路徑，外層用 group 表示分組，內層用 repeat 和 i 表示重複次數和方向
+                    GH_Path path = new GH_Path(group, repeat * 2 + i);
+                    foreach (var p in singleResult.intpList)
+                    {
+                        intpTree.Add(p, path);
+                    }
+    
+                    // 記錄該路徑下的點數量
+                    pointCounts[path.ToString()] = singleResult.intpList.Count;
+                }
+                else
+                {
+                    // 如果沒有交點，記錄點數量為 0
+                    GH_Path path = new GH_Path(group, repeat * 2 + i);
+                    pointCounts[path.ToString()] = 0;
+                }
+            }
+        }
+    }
 
-    // 進行多次交點計算
+  
+    // 輸出每個路徑的點數量
+    List<string> pathPointCounts = new List<string>();
+    foreach (var kvp in pointCounts)
+    {
+        pathPointCounts.Add($"{kvp.Key}: {kvp.Value} points");
+    }
+    
+    // 輸出點數量的統計結果
+    C = pathPointCounts;
+
+
+    
+  
+  ////// 進行圓的多次交點計算
     for (int i = 0; i < 4; i++)
     {
       // 調用 ComputeIntersections，存儲每次的結果
       IntersectionResult singleResult = ComputeIntersections(bsrf, pt0, dir[i], radi, it);
 
-      // 保存交點到樹狀結構
-      if (singleResult.intpList != null)
-      {
-        GH_Path path = new GH_Path(i); // 為每次結果分配一個路徑（0, 1, 2, 3）
-        foreach (var point in singleResult.intpList)
-        {
-          intpTree.Add(point, path);
-        }
-      }
 
       // 保存圓曲線到樹狀結構
       if (singleResult.Circles != null)
@@ -45,7 +88,7 @@ private void RunScript(Brep bsrf, Point3d pt0, List<Vector3d> dir, double radi, 
 
   }
 
-  // <Custom additional code> 
+  ////////////////////////////////////// <Custom additional code> /////////////////////////////////////
 
   private IntersectionResult ComputeIntersections(Brep bsrf, Point3d pt0, Vector3d dir, double radi, int it)
   {

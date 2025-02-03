@@ -42,19 +42,10 @@ private void RunScript(Brep bsrf, Point3d pt0, Vector3d dir, double radi, int it
     // 在列表中存入起始點 pt0
     result.intpList.Add(pt0);
 
-    // 計算法向量
+    // 計算法向量 dir2
     Vector3d zAxis = Vector3d.ZAxis;
     Vector3d dir2 = Vector3d.CrossProduct(dir, zAxis);
-
-    // 檢查 dir2 是否有效
-    if (dir2.IsZero)
-    {
-      RhinoApp.WriteLine("Direction vector is parallel to Z-axis.");
-      return result;
-    }
-
     dir2.Unitize(); // 確保 dir2 為單位向量
-    RhinoApp.WriteLine("Initialized direction vector and cross-product direction.");
 
     // 判斷是否為第一次迴圈
     bool first = true;
@@ -62,11 +53,10 @@ private void RunScript(Brep bsrf, Point3d pt0, Vector3d dir, double radi, int it
     ///////////////////////////// 開始迴圈 ////////////////////////////////
     for (int i = 0; i < it; i++)
     {
-      RhinoApp.WriteLine(string.Format("迭代 {0}: 開始計算.", i + 1));
 
       // 每次迴圈增加 5 度偏轉
       double angle = 5.0 * Math.PI / 180.0; // 將 5 度轉換為弧度
-      dir2.Rotate(angle, dir); // 圍繞主方向向量 dir 旋轉 dir2
+      dir2.Rotate(angle, zAxis); // 圍繞主方向向量 dir 旋轉 dir2
 
       // 創建平面和圓
       Plane plane = new Plane(cp, dir2);

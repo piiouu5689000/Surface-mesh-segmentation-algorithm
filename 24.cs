@@ -17,6 +17,8 @@ public class CurvatureTracing : GH_ScriptInstance
 
     public override void RunScript(Surface srf, Point3d uv, double accuracy, double angle, bool max, int alg, ref object pts)
     {
+        // 輸入: 點、方向、曲面
+        // 找出主曲率線
         if (srf == null || !uv.IsValid) return;
 
         // 確保精度不低於模型公差
@@ -35,9 +37,9 @@ public class CurvatureTracing : GH_ScriptInstance
         pts = dir1;
     }
 
-    /// <summary>
-    /// 追蹤曲面的主曲率方向。
-    /// </summary>
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////// 追蹤曲面的主曲率方向。////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
     private List<Point3d> SampleCurvature(Surface srf, Point3d uv, double accuracy, bool max, double angle, int alg)
     {
         Point3d p = uv;
@@ -84,9 +86,9 @@ public class CurvatureTracing : GH_ScriptInstance
         return samples;
     }
 
-    /// <summary>
-    /// 計算指定點的曲率方向。
-    /// </summary>
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////// 計算指定點的曲率方向。////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////////////////
     private Vector3d GetDir(Surface srf, Point3d p, bool max, double angle, double h, Vector3d prevDir)
     {
         SurfaceCurvature crv = srf.CurvatureAt(p.X, p.Y);

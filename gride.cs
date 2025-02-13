@@ -62,9 +62,9 @@ private void RunScript(Brep bSrf, List<Point3d> pU, List<Point3d> pV, double L, 
         Point3d pt1 = coodi[id1];
         Point3d pt2 = coodi[id2];
 
-        Point3d midp = (pt1 + pt2) * 0.5;
-        Vector3d cdir = pt2 - pt1;
-        double radius = pt0.DistanceTo(midp);
+        Point3d midp = (pt1 + pt2) * 0.5;  // 取對角線中點
+        Vector3d cdir = pt2 - pt1;         // 取原方向對角線方向
+        double radius = pt0.DistanceTo(midp);  // 取原點到對角線中點距離
 
         Plane plan = new Plane(midp, cdir);
         Circle circle = new Circle(plan, radius);
@@ -88,6 +88,7 @@ private void RunScript(Brep bSrf, List<Point3d> pU, List<Point3d> pV, double L, 
           }
         }
 
+        // 將得到的點放入字典對應的位置
         coodi[cpid] = newpt;
         test.Add(newpt);
 

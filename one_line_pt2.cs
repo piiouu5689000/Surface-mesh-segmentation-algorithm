@@ -92,7 +92,7 @@ private void RunScript(Brep bsrf, Point3d pt0, Vector3d dir, double radi, int it
           var validPoints = intP.Where(p => Vector3d.Multiply(p - cp, dir) > 0).ToList();
 
           // 設置 tp 為篩選出的第一個有效點
-          tp = validPoints.FirstOrDefault();
+          tp = validPoints.FirstOrDefault();  // 基本等價於validPoints[0]，但如果validPoints為空，程式會出錯
           result.fp = tp; // 將第一點存入
           if (tp == Point3d.Unset)
           {

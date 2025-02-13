@@ -1,3 +1,4 @@
+using Rhino.Geometry.Intersect;
 private void RunScript(Brep bSrf, List<Point3d> pU, List<Point3d> pV, double L, double wPD, ref object A, ref object B)
   {
 
@@ -18,7 +19,7 @@ private void RunScript(Brep bSrf, List<Point3d> pU, List<Point3d> pV, double L, 
       }
     }
 
-    // 按對角方式填入值
+    // 按對角方式填入值，作為字典的標籤
     int m = 0;
     for(int i = 0; i < U + V - 1; i++)
     {
@@ -28,7 +29,8 @@ private void RunScript(Brep bSrf, List<Point3d> pU, List<Point3d> pV, double L, 
       }
     }
 
-    Dictionary<int, Point3d> coodi = new Dictionary<int, Point3d>();
+  // 作一個字典，填入第一行與第一列的點，與第一行與第一列的標籤  
+  Dictionary<int, Point3d> coodi = new Dictionary<int, Point3d>();
     for(int i = 0; i < V; i++)
     {
       coodi[diagride[i][0]] = pV[i];
@@ -43,16 +45,19 @@ private void RunScript(Brep bSrf, List<Point3d> pU, List<Point3d> pV, double L, 
     {
       for(int j = 1; j < U; j++)
       {
+        // 以方形的關係，在對角矩陣取值，作為字典的標籤值
         int cpid = diagride[i][j];
         int id0 = diagride[i - 1][j - 1];
         int id1 = diagride[i][j - 1];
         int id2 = diagride[i - 1][j];
 
+        // 若字典中該標籤沒有點，就跳過
         if(!coodi.ContainsKey(id0) ||
           !coodi.ContainsKey(id1) ||
           !coodi.ContainsKey(id2))
           continue;
 
+        // 根據標籤選出三個點
         Point3d pt0 = coodi[id0];
         Point3d pt1 = coodi[id1];
         Point3d pt2 = coodi[id2];
